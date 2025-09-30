@@ -1,0 +1,60 @@
+name: Build Android AAB for Google Play Store
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-aab:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Install Dependencies
+      run: npm install
+      
+    - name: Build Web App for Production
+      env:
+        VITE_PRODUCTION_API_URL: https://citizen-care-projectdna7.replit.app
+        NODE_ENV: production
+      run: npm run build
+      
+    - name: Copy to Capacitor Android
+      run: npx cap copy android && npx cap sync android
+      
+    - name: Create Release Keystore
+      run: |
+        cd android
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > caren-release.jks
+      
+    - name: Build Android App Bundle (AAB)
+      env:
+        CAREN_KEYSTORE_FILE: caren-release.jks
+        CAREN_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        CAREN_KEY_ALIAS: caren-key
+        CAREN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew bundleRelease
+        
+    - name: Upload AAB Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: caren-app-release-aab
+        path: android/app/build/outputs/bundle/release/app-release.aab
+        retention-days: 30
