@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAREN - Emergency Access</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(0,0,0,0.4);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00d4ff;
+            text-align: center;
+        }
+        .logo {
+            color: #00d4ff;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #f59e0b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: #0ea5e9;
+            transform: translateY(-2px);
+        }
+        .demo-button {
+            background: #22c55e;
+        }
+        .demo-button:hover {
+            background: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">CAREN</div>
+        <div class="subtitle">Constitutional Rights & Emergency Network</div>
+        
+        <div class="status">
+            ⚠️ CONNECTION FALLBACK MODE
+        </div>
+        
+        <p>If the main interface isn't loading, you can access CAREN through these options:</p>
+        
+        <button class="button demo-button" onclick="loginDemo()">
+            🚀 Demo Login
+        </button>
+        
+        <button class="button" onclick="window.location.reload()">
+            🔄 Reload Main App
+        </button>
+        
+        <div style="margin-top: 30px; font-size: 14px; color: #9ca3af;">
+            <p><strong>Emergency Voice Commands:</strong></p>
+            <p>"emergency" • "help me" • "police"</p>
+        </div>
+    </div>
+
+    <script>
+        async function loginDemo() {
+            try {
+                const response = await fetch('/api/auth/demo-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Store session data and redirect
+                        localStorage.setItem('demoSessionKey', data.demoSessionKey);
+                        localStorage.setItem('customDomainToken', data.customDomainToken);
+                        window.location.href = '/';
+                    }
+                } else {
+                    alert('Demo login failed. Please try reloading the main app.');
+                }
+            } catch (error) {
+                console.error('Demo login error:', error);
+                alert('Connection error. Please check your network.');
+            }
+        }
+    </script>
+</body>
+</html>
