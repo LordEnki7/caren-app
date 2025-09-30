@@ -1,0 +1,82 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
+android {
+    namespace "com.caren.app"
+    compileSdk rootProject.ext.compileSdkVersion
+    
+    signingConfigs {
+        release {
+            // Production signing configuration - REQUIRED for Google Play
+            def keystoreFilePath = System.getenv("CAREN_KEYSTORE_FILE") ?: project.findProperty("CAREN_KEYSTORE_FILE")
+            def keystorePass = System.getenv("CAREN_KEYSTORE_PASSWORD") ?: project.findProperty("CAREN_KEYSTORE_PASSWORD")
+            def keyAliasName = System.getenv("CAREN_KEY_ALIAS") ?: project.findProperty("CAREN_KEY_ALIAS") ?: 'caren-key'
+            def keyPass = System.getenv("CAREN_KEY_PASSWORD") ?: project.findProperty("CAREN_KEY_PASSWORD")
+            
+            if (keystoreFilePath && keystorePass && keyPass) {
+                storeFile file(keystoreFilePath)
+                storePassword keystorePass
+                keyAlias keyAliasName
+                keyPassword keyPass
+            } else {
+                throw new GradleException("Release signing not configured! Set CAREN_KEYSTORE_FILE, CAREN_KEYSTORE_PASSWORD, and CAREN_KEY_PASSWORD environment variables or gradle.properties")
+            }
+        }
+    }
+    
+    defaultConfig {
+        applicationId "com.caren.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

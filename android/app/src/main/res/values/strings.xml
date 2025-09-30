@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">C.A.R.E.N.</string>
+    <string name="title_activity_main">C.A.R.E.N.</string>
+    <string name="package_name">com.caren.app</string>
+    <string name="custom_url_scheme">com.caren.app</string>
+</resources>
